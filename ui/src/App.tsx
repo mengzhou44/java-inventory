@@ -1,31 +1,16 @@
-import { useState } from 'react'
-import { Button, Card, Layout, Space, Typography } from 'antd'
-import './App.css'
-
-const { Header, Content } = Layout
-const { Title, Text } = Typography
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { InventoryPage } from './pages/inventory'
+import { InventoryDetailPage } from './pages/inventory-detail'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ color: '#fff', display: 'flex', alignItems: 'center' }}>
-        <Title level={4} style={{ color: '#fff', margin: 0 }}>
-          Inventory Service
-        </Title>
-      </Header>
-      <Content style={{ padding: 24 }}>
-        <Card title="Vite + React + TypeScript + Ant Design">
-          <Space direction="vertical" size="middle">
-            <Text>Count: {count}</Text>
-            <Button type="primary" onClick={() => setCount((c) => c + 1)}>
-              Increment
-            </Button>
-          </Space>
-        </Card>
-      </Content>
-    </Layout>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/inventory" replace />} />
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/inventory/:productSku" element={<InventoryDetailPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
