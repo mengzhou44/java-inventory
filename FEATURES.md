@@ -1,6 +1,20 @@
-# Inventory Service – Features
+# Order Fulfillment – Features
 
-## 1. Core Inventory Management
+## System Services (Overview)
+
+- **Orders service** – Creates and owns the order lifecycle; source of truth for order status.
+- **Inventory service** – Allocates stock, manages backorders, condition-based fulfillment.
+- **Payment service** – Charges the order; publishes when payment succeeds so allocation can proceed.
+- **Shipment service** – Reacts to allocated orders; pick, pack, ship; publishes when order is shipped.
+
+**Typical flow (pay first, then allocate):**  
+Order created → Payment → `order.paid` → Inventory allocates → `order.allocated` → Orders service updates status → Shipment service ships → `order.shipped` → Orders service sets FULFILLED.
+
+---
+
+## Inventory Service
+
+### 1. Core Inventory Management
 
 - **Inventory items**
   - Track **global stock per `product_sku`** (single-location model).
@@ -14,7 +28,7 @@
   - `POST /api/inventory/adjust`    – adjust quantity (delta + reason)
   - `DELETE /api/inventory/{productSku}` – delete/deactivate an inventory item
 
-## 2. Condition-Based Fulfillment (Single-Location)
+### 2. Condition-Based Fulfillment (Single-Location)
 
 - **Fulfillment rules**
   - Only fulfill when:
@@ -28,7 +42,7 @@
   - Orders: `PENDING`, `PARTIAL`, `FULFILLED`, `CANCELLED`.
   - Order items: `PENDING`, `ALLOCATED`, `FULFILLED`, `BACKORDERED`.
 
-## 3. Backorder Handling
+### 3. Backorder Handling
 
 - **Backorder creation**
   - When requested quantity > available quantity:
@@ -45,7 +59,7 @@
 - **Events (optional)**
   - Emit events (e.g. `backorder.created`, `backorder.fulfilled`) for downstream systems.
 
-## 4. Automated Replenishment
+### 4. Automated Replenishment
 
 - **Low-stock detection**
   - Monitor `inventory_item.quantity` per product against thresholds.
@@ -60,7 +74,7 @@
     - Increase `inventory_item.quantity`.
     - Trigger backorder reallocation for affected products.
 
-## 5. Kafka Integration (Planned)
+### 5. Kafka Integration (Planned)
 
 - **Consumers**
   - `orders.created` – create orders and allocate inventory.
@@ -73,7 +87,7 @@
   - `backorder.*` – notify on backorder lifecycle.
   - `replenishment.requested` – notify purchasing/warehouse systems.
 
-## 6. UI-Facing Capabilities
+### 6. UI-Facing Capabilities
 
 - **Dashboards**
   - Current stock per product.
@@ -85,7 +99,7 @@
   - Order-level and item-level fulfillment status (from inventory’s perspective only).
   - Simple audit trail of inventory changes (who/what/when/why).
 
-## 7. Service Boundaries (No Order Management Here)
+### 7. Service Boundaries (No Order Management Here)
 
 - **Ownership**
   - A separate **Orders service** owns the full order lifecycle (creation, listing, pricing, payments, shipping, etc.).

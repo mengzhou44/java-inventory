@@ -3,14 +3,22 @@ import { Table } from 'antd'
 import { Page } from '../components/page'
 import type { Order, CreateOrderLine } from '../api/orders'
 import { apiListOrders, apiCreateOrder } from '../api/orders'
+import { apiList as apiListInventory } from '../api/inventory'
 
 export function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [skus, setSkus] = useState<string[]>([])
   const [customerId, setCustomerId] = useState('')
   const [lines, setLines] = useState<CreateOrderLine[]>([{ productSku: '', quantity: 0 }])
+
+  useEffect(() => {
+    apiListInventory()
+      .then((items) => setSkus(items.map((i) => i.productSku)))
+      .catch(() => setSkus([]))
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -107,13 +115,18 @@ export function OrdersPage() {
               <div className="space-y-2">
                 {lines.map((line, index) => (
                   <div key={index} className="flex flex-wrap items-center gap-2">
-                    <input
-                      type="text"
+                    <select
                       value={line.productSku}
                       onChange={(e) => updateLine(index, 'productSku', e.target.value)}
-                      className="border border-slate-300 rounded px-3 py-2 w-40 focus:ring-2 focus:ring-slate-500"
-                      placeholder="Product SKU"
-                    />
+                      className="border border-slate-300 rounded px-3 py-2 w-40 focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                    >
+                      <option value="">Select SKU</option>
+                      {skus.map((sku) => (
+                        <option key={sku} value={sku}>
+                          {sku}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       type="number"
                       min={1}
